@@ -15,7 +15,7 @@ export async function POST(request: Request, context: RouteContext) {
   const body = await request.json();
   const parsed = publicMembershipSignupSchema.safeParse({
     formSlug,
-    ...body
+    ...body,
   });
 
   if (!parsed.success) {
@@ -23,9 +23,9 @@ export async function POST(request: Request, context: RouteContext) {
       {
         formSlug,
         ok: false,
-        errors: parsed.error.flatten()
+        errors: parsed.error.flatten(),
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -33,7 +33,9 @@ export async function POST(request: Request, context: RouteContext) {
 
   if (result.paymentProvider === "stripe" && result.amountMinor > 0) {
     try {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL ??
+        "https://f690-91-214-20-140.ngrok-free.app";
       const checkoutSession = await createStripeMembershipCheckout({
         amountMinor: result.amountMinor,
         cancelUrl: `${siteUrl}/${result.organizationSlug}/join?canceled=1`,
@@ -48,27 +50,31 @@ export async function POST(request: Request, context: RouteContext) {
         planName: result.planName,
         priceId: result.stripePriceId,
         productName: result.stripeProductName,
-        successUrl: `${siteUrl}/${result.organizationSlug}/join/success`
+        successUrl: `${siteUrl}/${result.organizationSlug}/join?success=1`,
       });
 
       return NextResponse.json({
         message: "Redirecting to secure Stripe checkout.",
         ok: true,
-        redirectUrl: checkoutSession.url
+        redirectUrl: checkoutSession.url,
       });
     } catch (error) {
       return NextResponse.json(
         {
-          message: error instanceof Error ? error.message : "Unable to start Stripe checkout.",
-          ok: false
+          message:
+            error instanceof Error
+              ? error.message
+              : "Unable to start Stripe checkout.",
+          ok: false,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   }
 
   return NextResponse.json({
     ...result,
-    message: "Your signup was received. The organization can now handle the next membership steps from the CRM."
+    message:
+      "Your signup was received. The organization can now handle the next membership steps from the CRM.",
   });
 }

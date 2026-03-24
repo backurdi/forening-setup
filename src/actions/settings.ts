@@ -79,7 +79,7 @@ export async function sendSettingsTestEmail(input: SendTestEmailInput) {
     return { ok: false as const, errors: parsed.error.flatten() };
   }
 
-  const result = await sendTestOrganizationEmail(parsed.data.orgSlug, parsed.data.recipientEmail);
+  const result = await sendTestOrganizationEmail(parsed.data.orgSlug, parsed.data.recipientEmail, parsed.data.template);
   revalidateSettingsPaths(parsed.data.orgSlug);
 
   return result;

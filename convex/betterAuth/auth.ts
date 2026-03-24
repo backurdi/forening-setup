@@ -9,6 +9,28 @@ import { components } from "../_generated/api";
 import type { DataModel } from "../_generated/dataModel";
 import schema from "./schema";
 
+function getAuthBaseUrl() {
+  return process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? process.env.SITE_URL;
+}
+
+function getTrustedOrigins(request?: Request) {
+  const origins = new Set<string>();
+  const baseUrl = getAuthBaseUrl();
+
+  if (baseUrl) {
+    origins.add(baseUrl);
+  }
+
+  const forwardedHost = request?.headers.get("x-forwarded-host");
+  const forwardedProto = request?.headers.get("x-forwarded-proto") ?? "https";
+
+  if (forwardedHost) {
+    origins.add(`${forwardedProto}://${forwardedHost}`);
+  }
+
+  return Array.from(origins);
+}
+
 export const authComponent = createClient<DataModel, typeof schema>(components.betterAuth, {
   local: { schema },
   verbose: false
@@ -17,14 +39,15 @@ export const authComponent = createClient<DataModel, typeof schema>(components.b
 export const createAuthOptions = (ctx: GenericCtx<DataModel>) =>
   ({
     appName: "Forening Setup",
-    baseURL: process.env.SITE_URL,
+    baseURL: getAuthBaseUrl(),
     database: authComponent.adapter(ctx),
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false
     },
     plugins: [convex({ authConfig })],
-    secret: process.env.BETTER_AUTH_SECRET
+    secret: process.env.BETTER_AUTH_SECRET,
+    trustedOrigins: (request) => getTrustedOrigins(request)
   }) satisfies BetterAuthOptions;
 
 export const options = createAuthOptions({} as GenericCtx<DataModel>);

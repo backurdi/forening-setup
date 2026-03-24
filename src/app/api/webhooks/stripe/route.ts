@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { fetchPublicMutation } from "@/lib/server/convex/client";
 import { sendWelcomeMemberEmail } from "@/lib/server/email/resend";
 import { constructStripeEvent } from "@/lib/server/payments/stripe";
+import { extractStripeMemberPaymentSyncPayload } from "@/lib/server/payments/stripe-webhook";
 import { api } from "@convex/_generated/api";
 
 export async function POST(request: Request) {
@@ -16,35 +17,28 @@ export async function POST(request: Request) {
 
   try {
     const event = await constructStripeEvent(payload, signature);
+    const syncPayload = extractStripeMemberPaymentSyncPayload(event);
 
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
-      const memberId = session.metadata?.memberId;
-      const personId = session.metadata?.personId;
-      const organizationSlug = session.metadata?.organizationSlug;
-      const firstName = session.metadata?.firstName ?? "there";
+    if (syncPayload) {
+      const result = await fetchPublicMutation(api.crm.syncStripeCheckoutCompleted, {
+        amountMinor: syncPayload.amountMinor,
+        checkoutSessionId: syncPayload.checkoutSessionId,
+        currency: syncPayload.currency,
+        customerId: syncPayload.customerId,
+        memberId: syncPayload.memberId as never,
+        paymentIntentId: syncPayload.paymentIntentId,
+        personId: syncPayload.personId as never,
+        subscriptionId: syncPayload.subscriptionId
+      });
 
-      if (memberId && personId) {
-        await fetchPublicMutation(api.crm.syncStripeCheckoutCompleted, {
-          amountMinor: session.amount_total ?? 0,
-          checkoutSessionId: session.id,
-          currency: (session.currency ?? "dkk").toUpperCase(),
-          customerId: typeof session.customer === "string" ? session.customer : undefined,
-          memberId: memberId as never,
-          paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : undefined,
-          personId: personId as never,
-          subscriptionId: typeof session.subscription === "string" ? session.subscription : undefined
+      if (result.memberActivatedNow && syncPayload.organizationSlug && syncPayload.customerEmail) {
+        await sendWelcomeMemberEmail({
+          firstName: syncPayload.firstName,
+          memberId: syncPayload.memberId as never,
+          orgSlug: syncPayload.organizationSlug,
+          personId: syncPayload.personId as never,
+          recipientEmail: syncPayload.customerEmail
         });
-
-        if (organizationSlug && session.customer_email) {
-          await sendWelcomeMemberEmail({
-            firstName,
-            memberId: memberId as never,
-            orgSlug: organizationSlug,
-            personId: personId as never,
-            recipientEmail: session.customer_email
-          });
-        }
       }
     }
 

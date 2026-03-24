@@ -2,11 +2,12 @@ type CrmTableCardProps = {
   caption: string;
   columns: string[];
   emptyMessage: string;
+  maxTableHeight?: string;
   rows: string[][];
   title: string;
 };
 
-export function CrmTableCard({ caption, columns, emptyMessage, rows, title }: CrmTableCardProps) {
+export function CrmTableCard({ caption, columns, emptyMessage, maxTableHeight, rows, title }: CrmTableCardProps) {
   return (
     <section className="section-card crm-table-card">
       <div className="table-header">
@@ -17,7 +18,10 @@ export function CrmTableCard({ caption, columns, emptyMessage, rows, title }: Cr
       {rows.length === 0 ? (
         <p className="body-copy">{emptyMessage}</p>
       ) : (
-        <div className="table-shell">
+        <div
+          className={`table-shell${maxTableHeight ? " table-shell-scrollable" : ""}`}
+          style={maxTableHeight ? { maxHeight: maxTableHeight } : undefined}
+        >
           <table className="crm-table">
             <thead>
               <tr>

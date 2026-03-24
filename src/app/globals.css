@@ -239,6 +239,18 @@ code {
   gap: 18px;
 }
 
+.dashboard-form-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard-inline-action {
+  min-width: 148px;
+}
+
 .panel-title {
   margin: 8px 0 0;
   font-family: var(--font-body);
@@ -308,6 +320,10 @@ code {
 
 .table-shell {
   overflow-x: auto;
+}
+
+.table-shell-scrollable {
+  overflow-y: auto;
 }
 
 .crm-table {
@@ -1378,6 +1394,17 @@ code {
   color: #6c5200;
 }
 
+.status-succeeded {
+  background: rgba(152, 223, 196, 0.22);
+  color: #173b35;
+}
+
+.status-failed,
+.status-refunded {
+  background: rgba(202, 92, 76, 0.14);
+  color: #8a3124;
+}
+
 .status-past_due,
 .status-canceled,
 .status-expired {
@@ -1573,6 +1600,7 @@ code {
 }
 
 .member-insight-panel,
+.member-payment-panel,
 .member-timeline-panel,
 .member-history-card {
   padding: 22px 24px;
@@ -1616,6 +1644,128 @@ code {
   color: var(--muted);
   font-size: 0.83rem;
   line-height: 1.45;
+}
+
+.member-payment-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.member-payment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.member-payment-alert {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(202, 92, 76, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(202, 92, 76, 0.08) 0%, rgba(202, 92, 76, 0.04) 100%);
+}
+
+.member-payment-alert strong {
+  font-size: 0.9rem;
+  color: #7e281f;
+}
+
+.member-payment-alert p {
+  margin: 0;
+  color: #8a3124;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.member-payment-card-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.member-payment-card {
+  display: grid;
+  gap: 5px;
+  padding: 15px 16px;
+  border: 1px solid rgba(31, 29, 23, 0.08);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
+}
+
+.member-payment-card-secure {
+  background:
+    radial-gradient(circle at top right, rgba(17, 84, 134, 0.08), transparent 36%),
+    linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
+.member-payment-card span,
+.member-payment-dialog-summary span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8a857b;
+}
+
+.member-payment-card strong,
+.member-payment-dialog-summary strong {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.member-payment-card small {
+  color: var(--muted);
+  font-size: 0.83rem;
+  line-height: 1.45;
+}
+
+.member-payment-footnote {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(31, 29, 23, 0.08);
+}
+
+.member-payment-footnote span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8a857b;
+}
+
+.member-payment-footnote strong {
+  font-size: 0.94rem;
+  color: #111;
+}
+
+.member-payment-footnote small {
+  color: var(--muted);
+  font-size: 0.83rem;
+}
+
+.member-payment-dialog-summary {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.member-payment-dialog-summary > div {
+  display: grid;
+  gap: 5px;
+  padding: 14px 16px;
+  border: 1px solid rgba(31, 29, 23, 0.08);
+  border-radius: 14px;
+  background: #ffffff;
 }
 
 .member-timeline-list,
@@ -1747,6 +1897,102 @@ code {
   display: inline-flex;
 }
 
+.email-template-browser {
+  display: grid;
+  gap: 16px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(31, 29, 23, 0.08);
+}
+
+.email-template-browser-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.email-template-grid {
+  display: grid;
+  gap: 14px;
+  justify-content: flex-start;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 360px));
+}
+
+.email-template-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(31, 29, 23, 0.08);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.email-template-card-surface {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.email-template-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.email-template-card-action {
+  padding: 9px 14px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+}
+
+.email-template-card-top {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.email-template-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(31, 29, 23, 0.08);
+  color: #6e695f;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.email-template-status.enabled {
+  background: rgba(31, 92, 78, 0.1);
+  color: #1f5c4e;
+}
+
+.email-template-card-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.email-template-card-copy strong {
+  font-size: 0.98rem;
+  color: #111;
+}
+
+.email-template-card-copy span,
+.email-template-card-copy small,
+.email-template-card-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.email-template-dialog-form {
+  padding: 0;
+}
+
 .dashboard-form {
   gap: 18px;
   border: 0;
@@ -1846,6 +2092,129 @@ code {
 
 .dialog-body {
   display: grid;
+}
+
+.integration-table-card {
+  gap: 18px;
+}
+
+.integration-table-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.integration-table-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid rgba(31, 29, 23, 0.08);
+  border-radius: 999px;
+  background: #fafaf8;
+  color: #4f4a43;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.integration-row-primary {
+  display: grid;
+  gap: 4px;
+}
+
+.integration-row-primary span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.integration-flow {
+  gap: 22px;
+}
+
+.integration-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.integration-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid rgba(31, 29, 23, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.integration-step span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(31, 29, 23, 0.08);
+  color: #1f1d17;
+  font-size: 0.75rem;
+}
+
+.integration-step.active {
+  border-color: #1b1b1a;
+  background: #1b1b1a;
+  color: #ffffff;
+}
+
+.integration-step.active span {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.integration-step-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.integration-field-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.integration-field-option {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(31, 29, 23, 0.08);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.integration-flow-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.integration-action-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.integration-action-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.integration-use-dialog {
+  gap: 16px;
 }
 
 .auth-layout {
@@ -1948,6 +2317,11 @@ code {
     grid-template-columns: 1fr;
   }
 
+  .email-template-browser-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .page-header {
     flex-direction: column;
     align-items: stretch;
@@ -1993,7 +2367,8 @@ code {
 
   .member-controls-header,
   .member-table-header,
-  .member-detail-hero-top {
+  .member-detail-hero-top,
+  .member-payment-header {
     flex-direction: column;
     align-items: stretch;
   }
@@ -2008,11 +2383,17 @@ code {
   }
 
   .member-detail-stats,
-  .member-detail-grid {
+  .member-detail-grid,
+  .member-payment-card-grid,
+  .member-payment-dialog-summary {
     grid-template-columns: 1fr;
   }
 
   .member-detail-badges {
+    justify-content: flex-start;
+  }
+
+  .member-payment-actions {
     justify-content: flex-start;
   }
 

@@ -44,6 +44,37 @@ export default defineSchema({
   })
     .index("by_org", ["organizationId"])
     .index("by_slug", ["slug"]),
+  integrations: defineTable({
+    buttonLabel: v.optional(v.string()),
+    createdAt: v.number(),
+    destinationType: v.union(v.literal("stripe_checkout"), v.literal("external_url")),
+    destinationUrl: v.optional(v.string()),
+    fields: v.array(
+      v.object({
+        fieldType: v.union(v.literal("text"), v.literal("email"), v.literal("phone"), v.literal("textarea")),
+        key: v.union(
+          v.literal("first_name"),
+          v.literal("last_name"),
+          v.literal("email"),
+          v.literal("phone"),
+          v.literal("company"),
+          v.literal("notes")
+        ),
+        label: v.string(),
+        required: v.boolean()
+      })
+    ),
+    integrationType: v.union(v.literal("onboarding_button"), v.literal("onboarding_form")),
+    name: v.string(),
+    organizationId: v.id("organizations"),
+    slug: v.string(),
+    status: v.union(v.literal("draft"), v.literal("active")),
+    summary: v.optional(v.string()),
+    title: v.optional(v.string()),
+    updatedAt: v.number()
+  })
+    .index("by_org", ["organizationId"])
+    .index("by_org_slug", ["organizationId", "slug"]),
   people: defineTable({
     consentToEmail: v.optional(v.boolean()),
     organizationId: v.id("organizations"),

@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 
 import { MemberContactDialogButton } from "@/components/dashboard/member-contact-dialog-button";
 import { MemberEntryForm } from "@/components/dashboard/member-entry-form";
+import { MemberPaymentPanel } from "@/components/dashboard/member-payment-panel";
 import { MembersIcon, PaymentIcon, ReceiptIcon } from "@/components/dashboard/icons";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { PaymentEntryForm } from "@/components/dashboard/payment-entry-form";
 import { getAdminContext } from "@/lib/server/services/admin";
 
 type MemberDetailPageProps = {
@@ -96,7 +96,7 @@ export default async function MemberDetailPage({ params, searchParams }: MemberD
             />
           </div>
         }
-        description="Review the full member record, update profile and plan details, record payments, and inspect activity without leaving this page."
+        description="Review the full member record, update profile and plan details, inspect Stripe payment information, and follow up when billing needs attention."
         icon={<MembersIcon />}
         title={member.name || member.email}
       />
@@ -172,7 +172,7 @@ export default async function MemberDetailPage({ params, searchParams }: MemberD
             <article className="member-detail-meta-item">
               <span>Recent payment</span>
               <strong>{lastPayment ? currencyFormatter.format(lastPayment.amountMinor / 100) : "None yet"}</strong>
-              <small>{lastPayment ? `${formatLabel(lastPayment.provider)} · ${formatDate(lastPayment.paidAt)}` : "Add the first payment from the form."}</small>
+              <small>{lastPayment ? `${formatLabel(lastPayment.provider)} · ${formatDate(lastPayment.paidAt)}` : "Waiting for the first Stripe payment."}</small>
             </article>
             <article className="member-detail-meta-item">
               <span>Recent email</span>
@@ -189,13 +189,25 @@ export default async function MemberDetailPage({ params, searchParams }: MemberD
       </div>
 
       <div className="member-detail-grid">
-        <PaymentEntryForm
-          orgSlug={crmOverview.organization.slug}
-          prefill={{
+        <MemberPaymentPanel
+          member={{
             email: member.email,
-            fullName: member.name || `${member.firstName} ${member.lastName}`.trim(),
-            note: member.planName
+            id: member.id,
+            name: member.name || member.email,
+            planName: member.planName,
+            status: member.status
           }}
+          orgSlug={crmOverview.organization.slug}
+          payments={memberPayments.map((payment) => ({
+            amountMinor: payment.amountMinor,
+            externalPaymentId: payment.externalPaymentId,
+            id: payment.id,
+            note: payment.note,
+            paidAt: payment.paidAt,
+            provider: payment.provider,
+            status: payment.status
+          }))}
+          totalPaidLabel={currencyFormatter.format(totalPaidMinor / 100)}
         />
 
         <section className="section-card member-timeline-panel">
@@ -211,7 +223,7 @@ export default async function MemberDetailPage({ params, searchParams }: MemberD
                   <PaymentIcon />
                 </div>
                 <div className="member-timeline-copy">
-                  <strong>{currencyFormatter.format(lastPayment.amountMinor / 100)} payment recorded</strong>
+                  <strong>{currencyFormatter.format(lastPayment.amountMinor / 100)} payment update</strong>
                   <span>{`${formatLabel(lastPayment.status)} via ${formatLabel(lastPayment.provider)} on ${formatDate(lastPayment.paidAt)}`}</span>
                 </div>
               </article>

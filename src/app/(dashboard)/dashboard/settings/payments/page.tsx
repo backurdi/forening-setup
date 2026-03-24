@@ -14,20 +14,28 @@ type PaymentSettingsPageProps = {
   }>;
 };
 
-export default async function PaymentSettingsPage({ searchParams }: PaymentSettingsPageProps) {
+export default async function PaymentSettingsPage({
+  searchParams,
+}: PaymentSettingsPageProps) {
   const params = await searchParams;
   const { selectedSlug } = await getAdminContext(params.org);
-  const settings = selectedSlug ? await getOrganizationSettings(selectedSlug) : null;
-  const stripeEnvReady = Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET);
+  const settings = selectedSlug
+    ? await getOrganizationSettings(selectedSlug)
+    : null;
+  const stripeEnvReady = Boolean(
+    process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET,
+  );
   const stripeConnection = settings?.stripeConnectAccountId
-    ? await getStripeConnectAccountStatus(settings.stripeConnectAccountId).catch(() => null)
+    ? await getStripeConnectAccountStatus(
+        settings.stripeConnectAccountId,
+      ).catch(() => null)
     : null;
   const stripeReady = Boolean(
     stripeEnvReady &&
     settings?.stripeConnectAccountId &&
-      stripeConnection?.chargesEnabled &&
-      stripeConnection?.detailsSubmitted &&
-      stripeConnection?.payoutsEnabled
+    stripeConnection?.chargesEnabled &&
+    stripeConnection?.detailsSubmitted &&
+    stripeConnection?.payoutsEnabled,
   );
   const stripeStatusMessage =
     params.stripe === "returned"
@@ -35,9 +43,12 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
         ? "Stripe is connected and ready for checkout."
         : "Stripe returned to the dashboard. Finish any remaining onboarding steps to start taking payments."
       : params.stripe === "error"
-        ? params.stripeMessage || "Stripe onboarding could not be started. Check your Stripe env vars and try again."
+        ? params.stripeMessage ||
+          "Stripe onboarding could not be started. Check your Stripe env vars and try again."
         : null;
-  const stripeConnectHref = selectedSlug ? `/api/stripe/connect/onboarding?org=${selectedSlug}` : null;
+  const stripeConnectHref = selectedSlug
+    ? `/api/stripe/connect/onboarding?org=${selectedSlug}`
+    : null;
 
   return (
     <main className="admin-main">
@@ -55,14 +66,19 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
             <>
               <section className="section-card settings-stack">
                 <div className="settings-pill">Stripe Connect</div>
-                <h2 className="panel-title">Connect the organization's Stripe account</h2>
+                <h2 className="panel-title">
+                  Connect the organization's Stripe account
+                </h2>
                 <p className="body-copy">
-                  Let the organization authenticate with Stripe directly. Once onboarding is complete, this app can create
-                  Checkout sessions on that connected account without asking for API keys.
+                  Let the organization authenticate with Stripe directly. Once
+                  onboarding is complete, this app can create Checkout sessions
+                  on that connected account without asking for API keys.
                 </p>
                 {!stripeEnvReady ? (
                   <div className="notice-card">
-                    Add <code>STRIPE_SECRET_KEY</code> and <code>STRIPE_WEBHOOK_SECRET</code> to the server environment before connecting Stripe.
+                    Add <code>STRIPE_SECRET_KEY</code> and{" "}
+                    <code>STRIPE_WEBHOOK_SECRET</code> to the server environment
+                    before connecting Stripe.
                   </div>
                 ) : null}
                 <div className="notice-card">
@@ -72,33 +88,32 @@ export default async function PaymentSettingsPage({ searchParams }: PaymentSetti
                       ? `Stripe account ${settings.stripeConnectAccountId} is linked, but onboarding still has ${stripeConnection?.requirementsDueCount ?? "some"} required step${stripeConnection?.requirementsDueCount === 1 ? "" : "s"} remaining.`
                       : "No Stripe account is connected yet."}
                 </div>
-                {stripeStatusMessage ? <p className="success-text">{stripeStatusMessage}</p> : null}
+                {stripeStatusMessage ? (
+                  <p className="success-text">{stripeStatusMessage}</p>
+                ) : null}
                 {stripeConnectHref && stripeEnvReady ? (
                   <a className="link-button active" href={stripeConnectHref}>
-                    {stripeReady ? "Review Stripe setup" : settings.stripeConnectAccountId ? "Continue Stripe onboarding" : "Connect Stripe"}
+                    {stripeReady
+                      ? "Review Stripe setup"
+                      : settings.stripeConnectAccountId
+                        ? "Continue Stripe onboarding"
+                        : "Connect Stripe"}
                   </a>
                 ) : null}
               </section>
               <PaymentSettingsForm
                 settings={{
                   defaultCurrency: settings.defaultCurrency,
-                  defaultMembershipAmountMinor: settings.defaultMembershipAmountMinor,
+                  defaultMembershipAmountMinor:
+                    settings.defaultMembershipAmountMinor,
                   defaultPlanName: settings.defaultPlanName,
                   orgSlug: settings.slug,
                   paymentProvider: settings.paymentProvider,
                   stripeConnected: stripeReady,
                   stripePriceId: settings.stripePriceId,
-                  stripeProductName: settings.stripeProductName
+                  stripeProductName: settings.stripeProductName,
                 }}
               />
-              <section className="section-card settings-stack">
-                <div className="settings-pill">Stripe workflow</div>
-                <h2 className="panel-title">How this now works</h2>
-                <p className="body-copy">When Stripe is enabled, the public join form creates a subscription checkout session on the connected account and the webhook activates the member plus records the payment in the CRM.</p>
-                <div className="notice-card">
-                  Use the Stripe CLI locally with <code>pnpm run stripe:listen</code> to forward webhook events into this app while testing. In Stripe, make sure the webhook endpoint is configured for connected accounts too.
-                </div>
-              </section>
             </>
           ) : (
             <section className="section-card">

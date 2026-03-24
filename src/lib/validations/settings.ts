@@ -39,7 +39,8 @@ export const emailSettingsSchema = z.object({
 
 export const sendTestEmailSchema = z.object({
   orgSlug: slugSchema,
-  recipientEmail: z.string().trim().email()
+  recipientEmail: z.string().trim().email(),
+  template: z.enum(["subscriber", "welcome"])
 });
 
 export type GeneralSettingsInput = z.infer<typeof generalSettingsSchema>;

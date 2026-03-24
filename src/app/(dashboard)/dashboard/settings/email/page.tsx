@@ -14,10 +14,14 @@ type EmailSettingsPageProps = {
   }>;
 };
 
-export default async function EmailSettingsPage({ searchParams }: EmailSettingsPageProps) {
+export default async function EmailSettingsPage({
+  searchParams,
+}: EmailSettingsPageProps) {
   const params = await searchParams;
   const { crmOverview, selectedSlug } = await getAdminContext(params.org);
-  const settings = selectedSlug ? await getOrganizationSettings(selectedSlug) : null;
+  const settings = selectedSlug
+    ? await getOrganizationSettings(selectedSlug)
+    : null;
   const emailActivity = crmOverview?.emails ?? [];
 
   return (
@@ -57,7 +61,7 @@ export default async function EmailSettingsPage({ searchParams }: EmailSettingsP
                   subscriberEmailSubject: settings.subscriberEmailSubject,
                   welcomeEmailBody: settings.welcomeEmailBody,
                   welcomeEmailEnabled: settings.welcomeEmailEnabled,
-                  welcomeEmailSubject: settings.welcomeEmailSubject
+                  welcomeEmailSubject: settings.welcomeEmailSubject,
                 }}
               />
               <section className="section-grid">
@@ -65,11 +69,12 @@ export default async function EmailSettingsPage({ searchParams }: EmailSettingsP
                   caption="Subscribers"
                   columns={["Name", "Email", "Status", "Source"]}
                   emptyMessage="No subscribers recorded yet."
+                  maxTableHeight="24rem"
                   rows={(crmOverview?.subscribers ?? []).map((subscriber) => [
                     subscriber.name || "Unnamed",
                     subscriber.email,
                     subscriber.status,
-                    subscriber.source
+                    subscriber.source,
                   ])}
                   title="Subscriber list"
                 />
@@ -77,17 +82,15 @@ export default async function EmailSettingsPage({ searchParams }: EmailSettingsP
                   caption="Email activity"
                   columns={["Recipient", "Subject", "Category", "Status"]}
                   emptyMessage="No email activity yet."
-                  rows={emailActivity.map((email) => [email.email, email.subject, email.category, email.status])}
+                  maxTableHeight="24rem"
+                  rows={emailActivity.map((email) => [
+                    email.email,
+                    email.subject,
+                    email.category,
+                    email.status,
+                  ])}
                   title="Delivery log"
                 />
-              </section>
-              <section className="section-card settings-stack">
-                <div className="settings-pill">Resend workflow</div>
-                <h2 className="panel-title">Delivery notes</h2>
-                <p className="body-copy">Emails now send through Resend when new subscribers are added, when active members are created manually, and when Stripe confirms hosted signup payments.</p>
-                <div className="notice-card">
-                  Use <code>pnpm run resend:doctor</code> to verify the local Resend setup, and point the Resend webhook to <code>/api/webhooks/resend</code> for delivery updates.
-                </div>
               </section>
             </>
           ) : (

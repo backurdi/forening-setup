@@ -187,3 +187,27 @@ export async function constructStripeEvent(payload: string, signature: string) {
 
   return stripe.webhooks.constructEvent(payload, signature, webhookSecret);
 }
+
+export async function refundStripePayment(input: {
+  connectedAccountId: string;
+  paymentIntentId: string;
+}) {
+  const stripe = getStripeClient();
+
+  if (!stripe) {
+    throw new Error("STRIPE_SECRET_KEY is not configured.");
+  }
+
+  if (!input.connectedAccountId) {
+    throw new Error("Stripe is not connected for this organization yet.");
+  }
+
+  return stripe.refunds.create(
+    {
+      payment_intent: input.paymentIntentId
+    },
+    {
+      stripeAccount: input.connectedAccountId
+    }
+  );
+}

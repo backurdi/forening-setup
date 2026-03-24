@@ -57,6 +57,20 @@ async function getAuthorizedMember(ctx: MutationCtx, orgSlug: string, memberId: 
   };
 }
 
+async function getAuthorizedPayment(ctx: MutationCtx, orgSlug: string, paymentId: Id<"payments">) {
+  const organization = await getAuthorizedOrganization(ctx, orgSlug);
+  const payment = await ctx.db.get(paymentId);
+
+  if (!payment || payment.organizationId !== organization._id) {
+    throw new ConvexError("Payment not found.");
+  }
+
+  return {
+    organization,
+    payment
+  };
+}
+
 function splitName(name: string) {
   const trimmed = name.trim();
 
@@ -169,6 +183,8 @@ export const getOrganizationCrmOverview = query({
           category: payment.category,
           currency: payment.currency,
           email: person?.email ?? "Unlinked",
+          externalCheckoutSessionId: payment.externalCheckoutSessionId ?? "",
+          externalPaymentId: payment.externalPaymentId ?? "",
           id: payment._id,
           memberStatus: member?.status ?? null,
           note: payment.note ?? "",
@@ -482,6 +498,25 @@ export const recordManualPayment = mutation({
   }
 });
 
+export const markPaymentRefunded = mutation({
+  args: {
+    orgSlug: v.string(),
+    paymentId: v.id("payments")
+  },
+  handler: async (ctx, args) => {
+    const { payment } = await getAuthorizedPayment(ctx, args.orgSlug, args.paymentId);
+
+    await ctx.db.patch(payment._id, {
+      status: "refunded"
+    });
+
+    return {
+      ok: true as const,
+      paymentId: payment._id
+    };
+  }
+});
+
 export const syncStripeCheckoutCompleted = mutation({
   args: {
     amountMinor: v.number(),
@@ -502,10 +537,37 @@ export const syncStripeCheckoutCompleted = mutation({
     }
 
     const organizationId = member.organizationId;
-    const existingPayment = await ctx.db
+    let existingPayment = await ctx.db
       .query("payments")
       .withIndex("by_external_checkout_session", (q) => q.eq("externalCheckoutSessionId", args.checkoutSessionId))
       .unique();
+
+    if (!existingPayment && args.paymentIntentId) {
+      existingPayment = await ctx.db
+        .query("payments")
+        .withIndex("by_external_payment_id", (q) => q.eq("externalPaymentId", args.paymentIntentId))
+        .unique();
+    }
+
+    if (!existingPayment && args.subscriptionId) {
+      const memberPayments = await ctx.db
+        .query("payments")
+        .withIndex("by_org_member", (q) => q.eq("organizationId", organizationId).eq("memberId", member._id))
+        .collect();
+
+      existingPayment =
+        memberPayments.find((payment) => {
+          if (payment.externalSubscriptionId !== args.subscriptionId) {
+            return false;
+          }
+
+          if (args.paymentIntentId) {
+            return payment.externalPaymentId === args.paymentIntentId || !payment.externalPaymentId;
+          }
+
+          return !payment.externalPaymentId;
+        }) ?? null;
+    }
 
     if (existingPayment) {
       await ctx.db.patch(existingPayment._id, {
@@ -536,11 +598,14 @@ export const syncStripeCheckoutCompleted = mutation({
       });
     }
 
+    const memberActivatedNow = member.status !== "active";
+
     await ctx.db.patch(member._id, {
       status: "active"
     });
 
     return {
+      memberActivatedNow,
       ok: true as const,
       organizationId,
       organizationSlug: undefined,

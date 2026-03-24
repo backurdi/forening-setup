@@ -1,16 +1,17 @@
 import Link from "next/link";
 import type { Route } from "next";
 
-import { BuildingIcon, MailIcon, PaymentIcon } from "@/components/dashboard/icons";
+import { BuildingIcon, GridIcon, MailIcon, PaymentIcon } from "@/components/dashboard/icons";
 
 type SettingsNavProps = {
-  active: "general" | "payments" | "email";
+  active: "general" | "payments" | "integrations" | "email";
   orgSlug?: string | null;
 };
 
 const navItems = [
   { key: "general", label: "General", icon: <BuildingIcon />, path: "/dashboard/settings" },
   { key: "payments", label: "Payments", icon: <PaymentIcon />, path: "/dashboard/settings/payments" },
+  { key: "integrations", label: "Integrations", icon: <GridIcon />, path: "/dashboard/settings/integrations" },
   { key: "email", label: "Email", icon: <MailIcon />, path: "/dashboard/settings/email" }
 ] as const;
 

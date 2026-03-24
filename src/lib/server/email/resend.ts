@@ -11,6 +11,8 @@ type EmailCategory =
   | "admin_notification"
   | "member_broadcast";
 
+type TestTemplateKey = "subscriber" | "welcome";
+
 function getResendClient() {
   const apiKey = process.env.RESEND_API_KEY;
 
@@ -165,17 +167,29 @@ export async function sendSubscriberWelcomeEmail(input: {
   });
 }
 
-export async function sendTestOrganizationEmail(orgSlug: string, recipientEmail: string) {
+export async function sendTestOrganizationEmail(orgSlug: string, recipientEmail: string, templateKey: TestTemplateKey) {
   const profile = await getMailProfile(orgSlug);
+  const templateConfig =
+    templateKey === "welcome"
+      ? {
+          bodyTemplate:
+            profile.welcomeEmailBody ||
+            "Hi {{firstName}}, this is a test email from {{organizationName}}. Reply to {{supportEmail}} if anything looks wrong.",
+          subjectTemplate: profile.welcomeEmailSubject || "Welcome to {{organizationName}}"
+        }
+      : {
+          bodyTemplate:
+            profile.subscriberEmailBody ||
+            "Hi {{firstName}}, thanks for subscribing to {{organizationName}}. Reply to {{supportEmail}} if anything looks wrong.",
+          subjectTemplate: profile.subscriberEmailSubject || "You're on the list for {{organizationName}}"
+        };
 
   return sendOrganizationEmail({
-    bodyTemplate:
-      profile.welcomeEmailBody ||
-      "Hi {{firstName}}, this is a test email from {{organizationName}}. Reply to {{supportEmail}} if anything looks wrong.",
+    bodyTemplate: templateConfig.bodyTemplate,
     category: "admin_notification",
     orgSlug,
     recipientEmail,
-    subjectTemplate: `Test email from ${profile.name}`,
+    subjectTemplate: `Test: ${templateConfig.subjectTemplate}`,
     variables: {
       firstName: "there",
       organizationName: profile.name,
