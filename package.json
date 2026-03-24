@@ -1,0 +1,53 @@
+{
+  "name": "forening-setup",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "dev": "concurrently -n web,convex -c blue,green \"pnpm run dev:web\" \"pnpm run dev:convex\"",
+    "dev:web": "next dev",
+    "dev:convex": "convex dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy",
+    "convex:codegen": "convex dev --once",
+    "seed:demo": "convex run seed:seedDemo",
+    "stripe:listen": "stripe listen --forward-to http://localhost:3000/api/webhooks/stripe",
+    "stripe:trigger:checkout": "stripe trigger checkout.session.completed",
+    "resend:doctor": "pnpm dlx resend-cli@1.6.0 doctor",
+    "resend:send": "pnpm dlx resend-cli@1.6.0 emails send",
+    "resend:webhooks": "pnpm dlx resend-cli@1.6.0 webhooks list"
+  },
+  "dependencies": {
+    "@convex-dev/better-auth": "0.11.3",
+    "@hookform/resolvers": "5.2.2",
+    "@opentelemetry/api": "1.9.0",
+    "better-auth": "1.5.6",
+    "convex": "1.34.0",
+    "next": "16.2.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "7.72.0",
+    "resend": "6.9.4",
+    "stripe": "20.4.1",
+    "zod": "4.3.6",
+    "zustand": "5.0.12"
+  },
+  "devDependencies": {
+    "@better-auth/cli": "1.4.21",
+    "@playwright/test": "1.58.2",
+    "@types/node": "25.5.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "concurrently": "^9.2.1",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.2.1",
+    "typescript": "6.0.2",
+    "vitest": "4.1.1"
+  }
+}
