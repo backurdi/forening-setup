@@ -45,7 +45,15 @@ export async function updatePaymentSettings(input: PaymentSettingsInput) {
     return { ok: false as const, errors: parsed.error.flatten() };
   }
 
-  await fetchAuthMutation(api.organizations.updatePaymentSettings, parsed.data);
+  try {
+    await fetchAuthMutation(api.organizations.updatePaymentSettings, parsed.data);
+  } catch (error) {
+    return {
+      message: error instanceof Error ? error.message : "Payment settings could not be saved.",
+      ok: false as const
+    };
+  }
+
   revalidateSettingsPaths(parsed.data.orgSlug);
 
   return { ok: true as const };

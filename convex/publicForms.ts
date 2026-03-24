@@ -117,6 +117,7 @@ export const submitSignup = mutation({
       personEmail: args.email,
       personId,
       planName: form.defaultPlanName,
+      stripeConnectAccountId: organization.stripeConnectAccountId,
       stripePriceId: organization.stripePriceId,
       stripeProductName: organization.stripeProductName
     };

@@ -163,6 +163,7 @@ export const getOrganizationSettings = query({
       publicDescription: organization.publicDescription ?? "",
       publicHeadline: organization.publicHeadline ?? "",
       slug: organization.slug,
+      stripeConnectAccountId: organization.stripeConnectAccountId ?? "",
       stripePriceId: organization.stripePriceId ?? "",
       stripeProductName: organization.stripeProductName ?? form?.defaultPlanName ?? "Monthly member",
       subscriberEmailBody: organization.subscriberEmailBody ?? "",
@@ -173,6 +174,43 @@ export const getOrganizationSettings = query({
       welcomeEmailEnabled: organization.welcomeEmailEnabled ?? true,
       welcomeEmailSubject: organization.welcomeEmailSubject ?? "",
       websiteUrl: organization.websiteUrl ?? ""
+    };
+  }
+});
+
+export const getStripeConnectSetup = query({
+  args: {
+    slug: v.string()
+  },
+  handler: async (ctx, args) => {
+    const organization = await getAuthorizedOrganization(ctx, args.slug);
+
+    return {
+      defaultCurrency: organization.defaultCurrency ?? "DKK",
+      name: organization.name,
+      slug: organization.slug,
+      stripeConnectAccountId: organization.stripeConnectAccountId ?? "",
+      supportEmail: organization.supportEmail,
+      websiteUrl: organization.websiteUrl ?? ""
+    };
+  }
+});
+
+export const saveStripeConnectAccount = mutation({
+  args: {
+    orgSlug: v.string(),
+    stripeConnectAccountId: v.string()
+  },
+  handler: async (ctx, args) => {
+    const organization = await getAuthorizedOrganization(ctx, args.orgSlug);
+
+    await ctx.db.patch(organization._id, {
+      stripeConnectAccountId: args.stripeConnectAccountId
+    });
+
+    return {
+      ok: true as const,
+      stripeConnectAccountId: args.stripeConnectAccountId
     };
   }
 });
@@ -268,6 +306,10 @@ export const updatePaymentSettings = mutation({
       .query("publicForms")
       .withIndex("by_org", (q) => q.eq("organizationId", organization._id))
       .first();
+
+    if (args.paymentProvider === "stripe" && !organization.stripeConnectAccountId) {
+      throw new ConvexError("Connect Stripe before enabling Stripe checkout.");
+    }
 
     await ctx.db.patch(organization._id, {
       defaultCurrency: args.defaultCurrency,

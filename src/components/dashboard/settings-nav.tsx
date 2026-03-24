@@ -17,7 +17,8 @@ const navItems = [
 export function SettingsNav({ active, orgSlug }: SettingsNavProps) {
   return (
     <nav className="settings-nav">
-      <p className="settings-nav-label">Workspace settings</p>
+      <h2 className="settings-aside-heading">Workspace settings</h2>
+      <p className="settings-nav-section">Configuration</p>
       {navItems.map((item) => {
         const href = orgSlug ? `${item.path}?org=${orgSlug}` : item.path;
 

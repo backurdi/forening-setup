@@ -5,31 +5,44 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { createManualMember } from "@/actions/crm";
+import { createManualMember, updateMember } from "@/actions/crm";
 import { FieldShell } from "@/components/dashboard/field-shell";
 import { GlobeIcon, MailIcon, MembersIcon, PaymentIcon, UserIcon } from "@/components/dashboard/icons";
 import { manualMemberSchema, type ManualMemberInput } from "@/lib/validations/crm";
 
+type EditableMember = {
+  consentToEmail: boolean;
+  email: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  phone: string;
+  planName: string;
+  status: ManualMemberInput["status"];
+};
+
 type MemberEntryFormProps = {
+  member?: EditableMember;
   orgSlug: string;
   variant?: "card" | "dialog";
 };
 
-export function MemberEntryForm({ orgSlug, variant = "card" }: MemberEntryFormProps) {
+export function MemberEntryForm({ member, orgSlug, variant = "card" }: MemberEntryFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const isEditing = Boolean(member);
   const form = useForm<ManualMemberInput>({
     resolver: zodResolver(manualMemberSchema),
     defaultValues: {
-      consentToEmail: true,
-      email: "",
-      firstName: "",
-      lastName: "",
+      consentToEmail: member?.consentToEmail ?? true,
+      email: member?.email ?? "",
+      firstName: member?.firstName ?? "",
+      lastName: member?.lastName ?? "",
       orgSlug,
-      phone: "",
-      planName: "Monthly member",
-      status: "active"
+      phone: member?.phone ?? "",
+      planName: member?.planName ?? "Monthly member",
+      status: member?.status ?? "active"
     }
   });
 
@@ -39,21 +52,32 @@ export function MemberEntryForm({ orgSlug, variant = "card" }: MemberEntryFormPr
       onSubmit={form.handleSubmit((values) =>
         startTransition(async () => {
           setStatusMessage(null);
-          const result = await createManualMember(values);
+          const result = member
+            ? await updateMember({
+                ...values,
+                memberId: member.id
+              })
+            : await createManualMember(values);
+
           if (!result.ok) {
-            setStatusMessage("Member could not be saved.");
+            const failureMessage = "message" in result ? result.message ?? "Member could not be saved." : "Member could not be saved.";
+            setStatusMessage(failureMessage);
             return;
           }
-          form.reset({ ...form.getValues(), email: "", firstName: "", lastName: "", phone: "" });
+
+          if (!isEditing) {
+            form.reset({ ...form.getValues(), email: "", firstName: "", lastName: "", phone: "" });
+          }
+
           window.dispatchEvent(new CustomEvent("dashboard:close-modals"));
           router.refresh();
-          setStatusMessage("Member saved.");
+          setStatusMessage(isEditing ? "Member updated." : "Member saved.");
         })
       )}
     >
       <div className={variant === "card" ? undefined : "form-intro-compact"}>
         <p className="eyebrow">Members</p>
-        <h2 className="panel-title">Register member</h2>
+        <h2 className="panel-title">{isEditing ? "Update member" : "Register member"}</h2>
       </div>
 
       <div className="form-grid">
@@ -108,7 +132,7 @@ export function MemberEntryForm({ orgSlug, variant = "card" }: MemberEntryFormPr
 
       {statusMessage ? <p className="success-text">{statusMessage}</p> : null}
       <button disabled={isPending} type="submit">
-        {isPending ? "Saving..." : "Save member"}
+        {isPending ? (isEditing ? "Updating..." : "Saving...") : isEditing ? "Update member" : "Save member"}
       </button>
     </form>
   );

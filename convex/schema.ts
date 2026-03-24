@@ -11,6 +11,7 @@ export default defineSchema({
     publicDescription: v.optional(v.string()),
     publicHeadline: v.optional(v.string()),
     slug: v.string(),
+    stripeConnectAccountId: v.optional(v.string()),
     stripePriceId: v.optional(v.string()),
     stripeProductName: v.optional(v.string()),
     supportEmail: v.string(),

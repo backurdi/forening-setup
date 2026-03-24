@@ -1,8 +1,7 @@
 import { ActionDialog } from "@/components/dashboard/action-dialog";
-import { BulkMemberEmailForm } from "@/components/dashboard/bulk-member-email-form";
-import { CrmTableCard } from "@/components/dashboard/crm-table-card";
 import { MembersIcon } from "@/components/dashboard/icons";
 import { MemberEntryForm } from "@/components/dashboard/member-entry-form";
+import { MembersRegistry } from "@/components/dashboard/members-registry";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { getAdminContext } from "@/lib/server/services/admin";
 
@@ -33,18 +32,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
         action={
           <div className="header-action-group">
             <ActionDialog
-              buttonLabel="Email members"
-              description="Send a bulk email to active, pending, or all members."
-              title="Bulk member email"
-            >
-              <BulkMemberEmailForm
-                activeCount={crmOverview.stats.activeMembers}
-                orgSlug={crmOverview.organization.slug}
-                pendingCount={crmOverview.stats.pendingMembers}
-                totalCount={crmOverview.members.length}
-              />
-            </ActionDialog>
-            <ActionDialog
+              buttonClassName="primary-action compact"
               buttonLabel="Add member"
               description="Register a member without leaving the registry view."
               title="Create member"
@@ -53,17 +41,17 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
             </ActionDialog>
           </div>
         }
-        description="The member registry stays front and center, with add-member and email actions tucked into focused modals."
+        compact
+        description="Keep the registry in view while you search, filter, select, and act on members."
         icon={<MembersIcon />}
         title="Members"
       />
 
-      <CrmTableCard
-        caption="Registry"
-        columns={["Name", "Email", "Phone", "Plan", "Status", "Source"]}
-        emptyMessage="No members registered yet."
-        rows={crmOverview.members.map((member) => [member.name || "Unnamed", member.email, member.phone || "—", member.planName, member.status, member.source])}
-        title="Member list"
+      <MembersRegistry
+        activeCount={crmOverview.stats.activeMembers}
+        members={crmOverview.members}
+        orgSlug={crmOverview.organization.slug}
+        pendingCount={crmOverview.stats.pendingMembers}
       />
     </main>
   );

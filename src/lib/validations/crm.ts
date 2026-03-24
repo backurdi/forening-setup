@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 const slugSchema = z.string().trim().min(2).regex(/^[a-z0-9-]+$/);
+const memberIdSchema = z.string().trim().min(1);
+export const memberStatusSchema = z.enum(["pending", "active", "past_due", "canceled", "expired"]);
 
 export const manualMemberSchema = z.object({
   consentToEmail: z.boolean(),
@@ -10,7 +12,22 @@ export const manualMemberSchema = z.object({
   orgSlug: slugSchema,
   phone: z.string().trim().min(6).optional().or(z.literal("")),
   planName: z.string().trim().min(2),
-  status: z.enum(["pending", "active", "past_due", "canceled", "expired"])
+  status: memberStatusSchema
+});
+
+export const memberUpdateSchema = manualMemberSchema.extend({
+  memberId: memberIdSchema
+});
+
+export const memberDeleteSchema = z.object({
+  memberId: memberIdSchema,
+  orgSlug: slugSchema
+});
+
+export const memberStatusUpdateSchema = z.object({
+  memberId: memberIdSchema,
+  orgSlug: slugSchema,
+  status: memberStatusSchema
 });
 
 export const newsletterSubscriberSchema = z.object({
@@ -33,13 +50,17 @@ export const manualPaymentSchema = z.object({
 });
 
 export const bulkMemberEmailSchema = z.object({
-  audience: z.enum(["active", "pending", "all"]),
+  audience: z.enum(["active", "pending", "all", "selected", "filtered"]),
   body: z.string().trim().min(8),
+  memberIds: z.array(memberIdSchema).default([]),
   orgSlug: slugSchema,
   subject: z.string().trim().min(2)
 });
 
 export type ManualMemberInput = z.infer<typeof manualMemberSchema>;
+export type MemberUpdateInput = z.infer<typeof memberUpdateSchema>;
+export type MemberDeleteInput = z.infer<typeof memberDeleteSchema>;
+export type MemberStatusUpdateInput = z.infer<typeof memberStatusUpdateSchema>;
 export type NewsletterSubscriberInput = z.infer<typeof newsletterSubscriberSchema>;
 export type ManualPaymentInput = z.infer<typeof manualPaymentSchema>;
 export type BulkMemberEmailInput = z.infer<typeof bulkMemberEmailSchema>;

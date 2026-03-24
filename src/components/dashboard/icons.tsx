@@ -127,11 +127,65 @@ export function BellIcon(props: IconProps) {
   );
 }
 
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="m7 10 5 5 5-5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+    </IconBase>
+  );
+}
+
+export function ChevronLeftIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="m14 7-5 5 5 5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+    </IconBase>
+  );
+}
+
+export function ChevronRightIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="m10 7 5 5-5 5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+    </IconBase>
+  );
+}
+
+export function HelpCircleIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1.4 1-1.4 2.2" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
+      <circle cx="12" cy="17" fill="currentColor" r="0.9" />
+    </IconBase>
+  );
+}
+
+export function MoreHorizontalIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <circle cx="6.5" cy="12" fill="currentColor" r="1.5" />
+      <circle cx="12" cy="12" fill="currentColor" r="1.5" />
+      <circle cx="17.5" cy="12" fill="currentColor" r="1.5" />
+    </IconBase>
+  );
+}
+
 export function UserIcon(props: IconProps) {
   return (
     <IconBase {...props}>
       <circle cx="12" cy="8.5" r="3.3" stroke="currentColor" strokeWidth="1.7" />
       <path d="M5 19c1.7-2.8 4-4.2 7-4.2s5.3 1.4 7 4.2" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
+    </IconBase>
+  );
+}
+
+export function LogoutIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M10 5H7.5A2.5 2.5 0 0 0 5 7.5v9A2.5 2.5 0 0 0 7.5 19H10" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
+      <path d="M14 8.5 18 12l-4 3.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
+      <path d="M9 12h9" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
     </IconBase>
   );
 }

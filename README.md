@@ -51,6 +51,13 @@ Required environment variables for the new flows:
 - `RESEND_API_KEY`
 - `RESEND_WEBHOOK_SECRET`
 
+Stripe Connect setup notes:
+
+- enable `Connect` on the Stripe platform account used by `STRIPE_SECRET_KEY`
+- create a webhook endpoint for `/api/webhooks/stripe` and save its signing secret as `STRIPE_WEBHOOK_SECRET`
+- configure that webhook endpoint to receive connected-account events, not only platform events
+- for local testing, use `pnpm run stripe:listen`, which now forwards both platform and connected-account events
+
 ## Current repo contents
 
 - architecture and planning docs in `docs/`
@@ -62,7 +69,7 @@ Required environment variables for the new flows:
 
 1. split admin UI with dedicated Members, Payments, Emails, and Settings pages
 2. settings subpages for General, Payments, and Email configuration
-3. Stripe-backed hosted checkout flow for public membership signup
+3. Stripe Connect onboarding plus Stripe-backed hosted checkout flow for public membership signup
 4. Resend-backed welcome/subscriber/test email sending plus delivery webhook ingestion
 5. CRM tables for members, payments, subscribers, and email activity
 

@@ -12,15 +12,25 @@ import { bulkMemberEmailSchema, type BulkMemberEmailInput } from "@/lib/validati
 
 type BulkMemberEmailFormProps = {
   activeCount: number;
+  defaultAudience?: BulkMemberEmailInput["audience"];
+  filteredCount?: number;
+  filteredMemberIds?: string[];
   orgSlug: string;
   pendingCount: number;
+  selectedCount?: number;
+  selectedMemberIds?: string[];
   totalCount: number;
 };
 
 export function BulkMemberEmailForm({
   activeCount,
+  defaultAudience = "active",
+  filteredCount = 0,
+  filteredMemberIds = [],
   orgSlug,
   pendingCount,
+  selectedCount = 0,
+  selectedMemberIds = [],
   totalCount
 }: BulkMemberEmailFormProps) {
   const router = useRouter();
@@ -28,8 +38,9 @@ export function BulkMemberEmailForm({
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const form = useForm<BulkMemberEmailInput>({
     defaultValues: {
-      audience: "active",
+      audience: defaultAudience,
       body: "Hi {{firstName}},\n\nWe have an update for members of {{organizationName}}.\n\nBest,\n{{organizationName}}",
+      memberIds: defaultAudience === "selected" ? selectedMemberIds : defaultAudience === "filtered" ? filteredMemberIds : [],
       orgSlug,
       subject: "Update from {{organizationName}}"
     },
@@ -42,7 +53,13 @@ export function BulkMemberEmailForm({
       onSubmit={form.handleSubmit((values) =>
         startTransition(async () => {
           setStatusMessage(null);
-          const result = await sendBulkMemberEmail(values);
+          const memberIds =
+            values.audience === "selected"
+              ? selectedMemberIds
+              : values.audience === "filtered"
+                ? filteredMemberIds
+                : [];
+          const result = await sendBulkMemberEmail({ ...values, memberIds });
 
           if (!result.ok) {
             const failureMessage = "message" in result ? result.message ?? "Bulk email failed." : "Bulk email failed.";
@@ -60,7 +77,8 @@ export function BulkMemberEmailForm({
         <p className="eyebrow">Member email actions</p>
         <h2 className="panel-title">Send bulk email</h2>
         <p className="body-copy">
-          Use <code>{"{{firstName}}"}</code> and <code>{"{{organizationName}}"}</code> in the message.
+          Use <code>{"{{firstName}}"}</code> and <code>{"{{organizationName}}"}</code> in the message. Only members with
+          email consent enabled are included in the send.
         </p>
       </div>
 
@@ -69,6 +87,10 @@ export function BulkMemberEmailForm({
           Audience
           <FieldShell icon={<MembersIcon />}>
             <select {...form.register("audience")}>
+              {selectedCount > 0 ? <option value="selected">Selected members ({selectedCount})</option> : null}
+              {filteredCount > 0 && filteredCount < totalCount ? (
+                <option value="filtered">Current filter ({filteredCount})</option>
+              ) : null}
               <option value="active">Active members ({activeCount})</option>
               <option value="pending">Pending members ({pendingCount})</option>
               <option value="all">All members ({totalCount})</option>

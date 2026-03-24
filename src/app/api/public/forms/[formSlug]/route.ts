@@ -37,6 +37,7 @@ export async function POST(request: Request, context: RouteContext) {
       const checkoutSession = await createStripeMembershipCheckout({
         amountMinor: result.amountMinor,
         cancelUrl: `${siteUrl}/${result.organizationSlug}/join?canceled=1`,
+        connectedAccountId: result.stripeConnectAccountId,
         currency: result.currency,
         customerEmail: result.personEmail,
         firstName: parsed.data.firstName,

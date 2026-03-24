@@ -17,7 +17,7 @@
     "convex:deploy": "convex deploy",
     "convex:codegen": "convex dev --once",
     "seed:demo": "convex run seed:seedDemo",
-    "stripe:listen": "stripe listen --forward-to http://localhost:3000/api/webhooks/stripe",
+    "stripe:listen": "stripe listen --forward-to http://localhost:3000/api/webhooks/stripe --forward-connect-to http://localhost:3000/api/webhooks/stripe",
     "stripe:trigger:checkout": "stripe trigger checkout.session.completed",
     "resend:doctor": "pnpm dlx resend-cli@1.6.0 doctor",
     "resend:send": "pnpm dlx resend-cli@1.6.0 emails send",

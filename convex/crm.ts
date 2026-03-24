@@ -36,6 +36,27 @@ async function getAuthorizedOrganization(ctx: QueryCtx | MutationCtx, slug: stri
   return organization;
 }
 
+async function getAuthorizedMember(ctx: MutationCtx, orgSlug: string, memberId: Id<"members">) {
+  const organization = await getAuthorizedOrganization(ctx, orgSlug);
+  const member = await ctx.db.get(memberId);
+
+  if (!member || member.organizationId !== organization._id) {
+    throw new ConvexError("Member not found.");
+  }
+
+  const person = await ctx.db.get(member.personId);
+
+  if (!person) {
+    throw new ConvexError("Member person not found.");
+  }
+
+  return {
+    member,
+    organization,
+    person
+  };
+}
+
 function splitName(name: string) {
   const trimmed = name.trim();
 
@@ -121,6 +142,17 @@ export const getOrganizationCrmOverview = query({
         .map((person) => [person._id, person])
     );
     const membersById = new Map(members.map((member) => [member._id, member]));
+    const paymentsByMemberId = new Map<Id<"members">, Doc<"payments">[]>();
+
+    payments.forEach((payment) => {
+      if (!payment.memberId) {
+        return;
+      }
+
+      const existingPayments = paymentsByMemberId.get(payment.memberId) ?? [];
+      existingPayments.push(payment);
+      paymentsByMemberId.set(payment.memberId, existingPayments);
+    });
 
     return {
       organization: {
@@ -177,12 +209,22 @@ export const getOrganizationCrmOverview = query({
       }),
       members: members.map((member) => {
         const person = peopleById.get(member.personId);
+        const memberPayments = paymentsByMemberId.get(member._id) ?? [];
+        const successfulPayments = memberPayments.filter((payment) => payment.status === "succeeded");
+        const latestPayment = memberPayments[0] ?? null;
         return {
+          consentToEmail: person?.consentToEmail ?? false,
           email: person?.email ?? "",
+          firstName: person?.firstName ?? "",
           id: member._id,
+          lastName: person?.lastName ?? "",
+          lastPaymentAt: latestPayment?.paidAt ?? null,
+          lastPaymentStatus: latestPayment?.status ?? null,
           name: [person?.firstName, person?.lastName].filter(Boolean).join(" "),
+          paymentCount: memberPayments.length,
           phone: person?.phone ?? "",
           planName: member.planName,
+          successfulPaymentCount: successfulPayments.length,
           source: member.source,
           status: member.status
         };
@@ -282,6 +324,113 @@ export const createSubscriber = mutation({
     });
 
     return { contactId, ok: true as const, personId };
+  }
+});
+
+export const updateMember = mutation({
+  args: {
+    consentToEmail: v.boolean(),
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    memberId: v.id("members"),
+    orgSlug: v.string(),
+    phone: v.optional(v.string()),
+    planName: v.string(),
+    status: v.union(v.literal("pending"), v.literal("active"), v.literal("past_due"), v.literal("canceled"), v.literal("expired"))
+  },
+  handler: async (ctx, args) => {
+    const { member, organization, person } = await getAuthorizedMember(ctx, args.orgSlug, args.memberId);
+    const existingPerson = await ctx.db
+      .query("people")
+      .withIndex("by_org_email", (q) => q.eq("organizationId", organization._id).eq("email", args.email))
+      .unique();
+
+    if (existingPerson && existingPerson._id !== person._id) {
+      throw new ConvexError("Another person already uses that email in this organization.");
+    }
+
+    await ctx.db.patch(person._id, {
+      consentToEmail: args.consentToEmail,
+      email: args.email,
+      firstName: args.firstName,
+      lastName: args.lastName,
+      phone: args.phone || undefined
+    });
+
+    await ctx.db.patch(member._id, {
+      planName: args.planName,
+      status: args.status
+    });
+
+    return {
+      memberId: member._id,
+      ok: true as const,
+      personId: person._id
+    };
+  }
+});
+
+export const updateMemberStatus = mutation({
+  args: {
+    memberId: v.id("members"),
+    orgSlug: v.string(),
+    status: v.union(v.literal("pending"), v.literal("active"), v.literal("past_due"), v.literal("canceled"), v.literal("expired"))
+  },
+  handler: async (ctx, args) => {
+    const { member } = await getAuthorizedMember(ctx, args.orgSlug, args.memberId);
+
+    await ctx.db.patch(member._id, {
+      status: args.status
+    });
+
+    return {
+      memberId: member._id,
+      ok: true as const
+    };
+  }
+});
+
+export const deleteMember = mutation({
+  args: {
+    memberId: v.id("members"),
+    orgSlug: v.string()
+  },
+  handler: async (ctx, args) => {
+    const { member, organization } = await getAuthorizedMember(ctx, args.orgSlug, args.memberId);
+    const linkedPayments = await ctx.db
+      .query("payments")
+      .withIndex("by_org_member", (q) => q.eq("organizationId", organization._id).eq("memberId", member._id))
+      .collect();
+    const linkedEmails = await ctx.db
+      .query("emailMessages")
+      .withIndex("by_org_created_at", (q) => q.eq("organizationId", organization._id))
+      .collect();
+
+    await Promise.all(
+      linkedPayments.map((payment) =>
+        ctx.db.patch(payment._id, {
+          memberId: undefined
+        })
+      )
+    );
+
+    await Promise.all(
+      linkedEmails
+        .filter((message) => message.memberId === member._id)
+        .map((message) =>
+          ctx.db.patch(message._id, {
+            memberId: undefined
+          })
+        )
+    );
+
+    await ctx.db.delete(member._id);
+
+    return {
+      memberId: member._id,
+      ok: true as const
+    };
   }
 });
 

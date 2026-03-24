@@ -1,13 +1,14 @@
 type PageHeaderProps = {
   action?: React.ReactNode;
+  compact?: boolean;
   description?: string;
   icon?: React.ReactNode;
   title: string;
 };
 
-export function PageHeader({ action, description, icon, title }: PageHeaderProps) {
+export function PageHeader({ action, compact = false, description, icon, title }: PageHeaderProps) {
   return (
-    <section className="page-header">
+    <section className={compact ? "page-header compact" : "page-header"}>
       <div className="page-header-copy">
         <div className="page-title-row">
           {icon ? <span className="page-title-icon">{icon}</span> : null}

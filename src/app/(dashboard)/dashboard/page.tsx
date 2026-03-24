@@ -63,41 +63,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </section>
 
           <section className="section-grid">
-            <section className="section-card">
-              <p className="eyebrow">Members</p>
-              <h2 className="panel-title">Registry</h2>
-              <p className="body-copy">View and register members on the dedicated Members page.</p>
-              <Link className="link-button" href={`/dashboard/members?org=${crmOverview.organization.slug}`}>
-                Open Members
-              </Link>
-            </section>
-            <section className="section-card">
-              <p className="eyebrow">Payments</p>
-              <h2 className="panel-title">Billing desk</h2>
-              <p className="body-copy">Keep payment intake and history on their own focused page.</p>
-              <Link className="link-button" href={`/dashboard/payments?org=${crmOverview.organization.slug}`}>
-                Open Payments
-              </Link>
-            </section>
-            <section className="section-card">
-              <p className="eyebrow">Emails</p>
-              <h2 className="panel-title">Audience</h2>
-              <p className="body-copy">Capture and manage subscriber lists without crowding member operations.</p>
-              <Link className="link-button" href={`/dashboard/emails?org=${crmOverview.organization.slug}`}>
-                Open Emails
-              </Link>
-            </section>
-            <section className="section-card">
-              <p className="eyebrow">Settings</p>
-              <h2 className="panel-title">Workspace controls</h2>
-              <p className="body-copy">Organization creation and settings now live in a separate configuration page.</p>
-              <Link className="link-button" href={`/dashboard/settings?org=${crmOverview.organization.slug}`}>
-                Open Settings
-              </Link>
-            </section>
-          </section>
-
-          <section className="section-grid">
             <CrmTableCard
               caption="Recent members"
               columns={["Name", "Email", "Plan", "Status", "Source"]}

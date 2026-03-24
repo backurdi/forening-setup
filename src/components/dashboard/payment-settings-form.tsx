@@ -11,7 +11,9 @@ import { GlobeIcon, MembersIcon, PaymentIcon, ReceiptIcon } from "@/components/d
 import { paymentSettingsSchema, type PaymentSettingsInput } from "@/lib/validations/settings";
 
 type PaymentSettingsFormProps = {
-  settings: PaymentSettingsInput;
+  settings: PaymentSettingsInput & {
+    stripeConnected: boolean;
+  };
 };
 
 export function PaymentSettingsForm({ settings }: PaymentSettingsFormProps) {
@@ -26,6 +28,7 @@ export function PaymentSettingsForm({ settings }: PaymentSettingsFormProps) {
     control: form.control,
     name: "paymentProvider"
   });
+  const stripeRequiresConnection = provider === "stripe" && !settings.stripeConnected;
 
   return (
     <form
@@ -36,7 +39,7 @@ export function PaymentSettingsForm({ settings }: PaymentSettingsFormProps) {
           const result = await updatePaymentSettings(values);
 
           if (!result.ok) {
-            setStatusMessage("Payment settings could not be saved.");
+            setStatusMessage("message" in result ? result.message : "Payment settings could not be saved.");
             return;
           }
 
@@ -86,7 +89,7 @@ export function PaymentSettingsForm({ settings }: PaymentSettingsFormProps) {
           </FieldShell>
         </label>
         <label>
-          Stripe price ID
+          Advanced Stripe Price ID
           <FieldShell icon={<ReceiptIcon />}>
             <input {...form.register("stripePriceId")} placeholder="price_1234" />
           </FieldShell>
@@ -94,14 +97,16 @@ export function PaymentSettingsForm({ settings }: PaymentSettingsFormProps) {
       </div>
 
       <div className="notice-card">
-        {provider === "stripe"
-          ? "With Stripe enabled, the hosted join page creates a recurring checkout session. If a Price ID is left empty, the app builds a monthly recurring price from the amount and currency above."
+        {stripeRequiresConnection
+          ? "Connect the organization's Stripe account first. After that, you can enable Stripe checkout without asking them for API keys."
+          : provider === "stripe"
+            ? "With Stripe enabled, the hosted join page creates a recurring checkout session on the connected Stripe account. If a Price ID is left empty, the app builds a monthly recurring price from the amount and currency above."
           : "Manual mode keeps public signups in the CRM without redirecting to checkout. Use this while onboarding or if the organization takes payment offline."}
       </div>
 
       {statusMessage ? <p className="success-text">{statusMessage}</p> : null}
 
-      <button disabled={isPending} type="submit">
+      <button disabled={isPending || stripeRequiresConnection} type="submit">
         {isPending ? "Saving..." : "Save payment settings"}
       </button>
     </form>

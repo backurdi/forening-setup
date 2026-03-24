@@ -10,24 +10,33 @@ import { FieldShell } from "@/components/dashboard/field-shell";
 import { GlobeIcon, MailIcon, MembersIcon, PaymentIcon, ReceiptIcon, UserIcon } from "@/components/dashboard/icons";
 import { manualPaymentSchema, type ManualPaymentInput } from "@/lib/validations/crm";
 
+type PaymentEntryPrefill = {
+  amountMinor?: number;
+  currency?: string;
+  email?: string;
+  fullName?: string;
+  note?: string;
+};
+
 type PaymentEntryFormProps = {
+  prefill?: PaymentEntryPrefill;
   orgSlug: string;
   variant?: "card" | "dialog";
 };
 
-export function PaymentEntryForm({ orgSlug, variant = "card" }: PaymentEntryFormProps) {
+export function PaymentEntryForm({ prefill, orgSlug, variant = "card" }: PaymentEntryFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const form = useForm<ManualPaymentInput>({
     resolver: zodResolver(manualPaymentSchema),
     defaultValues: {
-      amountMinor: 5000,
+      amountMinor: prefill?.amountMinor ?? 5000,
       category: "membership",
-      currency: "DKK",
-      email: "",
-      fullName: "",
-      note: "",
+      currency: prefill?.currency ?? "DKK",
+      email: prefill?.email ?? "",
+      fullName: prefill?.fullName ?? "",
+      note: prefill?.note ?? "",
       orgSlug,
       provider: "manual",
       status: "succeeded"
@@ -45,7 +54,12 @@ export function PaymentEntryForm({ orgSlug, variant = "card" }: PaymentEntryForm
             setStatusMessage("Payment could not be recorded.");
             return;
           }
-          form.reset({ ...form.getValues(), email: "", fullName: "", note: "" });
+          form.reset({
+            ...form.getValues(),
+            email: prefill?.email ?? "",
+            fullName: prefill?.fullName ?? "",
+            note: prefill?.note ?? ""
+          });
           window.dispatchEvent(new CustomEvent("dashboard:close-modals"));
           router.refresh();
           setStatusMessage("Payment recorded.");
@@ -54,7 +68,7 @@ export function PaymentEntryForm({ orgSlug, variant = "card" }: PaymentEntryForm
     >
       <div className={variant === "card" ? undefined : "form-intro-compact"}>
         <p className="eyebrow">Payments</p>
-        <h2 className="panel-title">Record payment</h2>
+        <h2 className="panel-title">{prefill?.fullName ? `Record payment for ${prefill.fullName}` : "Record payment"}</h2>
       </div>
 
       <div className="form-grid">

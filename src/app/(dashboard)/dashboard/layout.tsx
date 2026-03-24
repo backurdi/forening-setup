@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 
 import { isAuthenticated } from "@/lib/auth-server";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
-import { DashboardTopbar } from "@/components/dashboard/dashboard-topbar";
 import { listOrganizationSummaries } from "@/lib/server/services/organizations";
 
 type DashboardLayoutProps = {
@@ -18,9 +17,8 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
   return (
     <div className="admin-layout">
-      <DashboardSidebar organizationCount={organizations.length} />
+      <DashboardSidebar organizations={organizations.map((organization) => ({ name: organization.name, slug: organization.slug }))} />
       <div className="admin-content">
-        <DashboardTopbar organizations={organizations.map((organization) => ({ name: organization.name, slug: organization.slug }))} />
         <div className="admin-body">{children}</div>
       </div>
     </div>

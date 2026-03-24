@@ -16,9 +16,89 @@ export function getStripeWebhookSecret() {
   return process.env.STRIPE_WEBHOOK_SECRET ?? null;
 }
 
+export async function createStripeConnectOnboardingLink(input: {
+  defaultCurrency: string;
+  existingAccountId?: string;
+  organizationName: string;
+  orgSlug: string;
+  returnUrl: string;
+  supportEmail: string;
+  websiteUrl?: string;
+}) {
+  const stripe = getStripeClient();
+
+  if (!stripe) {
+    throw new Error("STRIPE_SECRET_KEY is not configured.");
+  }
+
+  const accountId =
+    input.existingAccountId ||
+    (
+      await stripe.accounts.create({
+        business_profile: {
+          name: input.organizationName,
+          support_email: input.supportEmail,
+          url: input.websiteUrl || undefined
+        },
+        capabilities: {
+          card_payments: {
+            requested: true
+          },
+          transfers: {
+            requested: true
+          }
+        },
+        default_currency: input.defaultCurrency.toLowerCase(),
+        email: input.supportEmail,
+        metadata: {
+          organizationName: input.organizationName,
+          organizationSlug: input.orgSlug
+        },
+        type: "standard"
+      })
+    ).id;
+
+  const refreshUrl = new URL("/api/stripe/connect/onboarding", input.returnUrl);
+  refreshUrl.searchParams.set("org", input.orgSlug);
+
+  const accountLink = await stripe.accountLinks.create({
+    account: accountId,
+    collection_options: {
+      fields: "eventually_due",
+      future_requirements: "include"
+    },
+    refresh_url: refreshUrl.toString(),
+    return_url: input.returnUrl,
+    type: "account_onboarding"
+  });
+
+  return {
+    accountId,
+    url: accountLink.url
+  };
+}
+
+export async function getStripeConnectAccountStatus(accountId: string) {
+  const stripe = getStripeClient();
+
+  if (!stripe) {
+    throw new Error("STRIPE_SECRET_KEY is not configured.");
+  }
+
+  const account = await stripe.accounts.retrieve(accountId);
+
+  return {
+    chargesEnabled: account.charges_enabled,
+    detailsSubmitted: account.details_submitted,
+    payoutsEnabled: account.payouts_enabled,
+    requirementsDueCount: account.requirements?.currently_due?.length ?? 0
+  };
+}
+
 export async function createStripeMembershipCheckout(input: {
   amountMinor: number;
   cancelUrl: string;
+  connectedAccountId?: string;
   currency: string;
   customerEmail: string;
   firstName: string;
@@ -35,6 +115,10 @@ export async function createStripeMembershipCheckout(input: {
 
   if (!stripe) {
     throw new Error("STRIPE_SECRET_KEY is not configured.");
+  }
+
+  if (!input.connectedAccountId) {
+    throw new Error("Stripe is not connected for this organization yet.");
   }
 
   const session = await stripe.checkout.sessions.create({
@@ -82,6 +166,8 @@ export async function createStripeMembershipCheckout(input: {
       }
     },
     success_url: input.successUrl
+  }, {
+    stripeAccount: input.connectedAccountId
   });
 
   if (!session.url) {
